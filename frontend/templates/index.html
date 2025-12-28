@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Upload · Object Detection Hub{% endblock %}
+{% block content %}
+<div class="row mt-4">
+  <div class="col-lg-7">
+    <h1 class="h3">Wgraj plik do analizy</h1>
+    <p class="text-muted">Zdjęcie lub wideo — system wykryje obiekty (bbox + klasa), zapisze wynik do historii i wygeneruje raport PDF.</p>
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <h2 class="h5 mb-3">Zdjęcie</h2>
+        <form action="/upload" method="post" enctype="multipart/form-data">
+          <div class="mb-3">
+            <label class="form-label">Plik (JPG/PNG)</label>
+            <input class="form-control" type="file" name="file" accept="image/*" required>
+            <div class="form-text">Limit: {{ max_upload_mb }}MB</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Confidence threshold</label>
+            <input class="form-control" type="number" name="conf" step="0.01" min="0" max="1" value="{{ default_conf }}">
+            <div class="form-text">Wyższa wartość = mniej detekcji, ale pewniejsze.</div>
+          </div>
+          <button class="btn btn-primary" type="submit">Wykryj obiekty</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h2 class="h5 mb-3">Wideo (MP4)</h2>
+        <form action="/upload/video" method="post" enctype="multipart/form-data">
+          <div class="mb-3">
+            <label class="form-label">Plik (MP4)</label>
+            <input class="form-control" type="file" name="file" accept="video/mp4,video/*" required>
+            <div class="form-text">Limit: {{ max_upload_mb }}MB (jeśli film jest duży, przytnij lub zmniejsz rozdzielczość).</div>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Confidence threshold</label>
+              <input class="form-control" type="number" name="conf" step="0.01" min="0" max="1" value="{{ default_conf }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Co ile klatek (frame_step)</label>
+              <input class="form-control" type="number" name="frame_step" step="1" min="1" max="60" value="5">
+              <div class="form-text">Np. 5 = analiza co 5 klatek (szybciej).</div>
+            </div>
+          </div>
+          <button class="btn btn-primary mt-3" type="submit">Analizuj wideo</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5 mt-4 mt-lg-0">
+    <h2 class="h5">Co dostajesz</h2>
+    <ul class="text-muted">
+      <li>Podgląd (bbox + kolory klas + legenda)</li>
+      <li>Lista detekcji (klasa + confidence)</li>
+      <li>W przypadku wideo: wygenerowany film z bboxami + statystyki</li>
+      <li>Raport PDF do pobrania</li>
+      <li>Historia analiz w bazie SQLite</li>
+      <li>Dashboard statystyk</li>
+    </ul>
+  </div>
+</div>
+{% endblock %}

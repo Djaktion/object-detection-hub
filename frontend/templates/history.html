@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Historia · Object Detection Hub{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mt-4">
+  <h1 class="h4 mb-0">Historia analiz</h1>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary btn-sm" href="/history?limit={{ limit }}&offset={{ prev_offset }}">← Poprzednie</a>
+    <a class="btn btn-outline-secondary btn-sm" href="/history?limit={{ limit }}&offset={{ next_offset }}">Następne →</a>
+  </div>
+</div>
+
+<div class="card shadow-sm mt-3">
+  <div class="table-responsive">
+    <table class="table table-striped table-hover mb-0 align-middle">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Plik</th>
+          <th>Model</th>
+          <th>Conf</th>
+          <th>Detekcji</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for it in items %}
+        <tr>
+          <td class="small text-muted">{{ it.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+          <td>{{ it.filename }}</td>
+          <td class="small">{{ it.model }}</td>
+          <td class="small">{{ '%.2f'|format(it.conf) }}</td>
+          <td>{{ it.count }}</td>
+          <td><a class="btn btn-sm btn-primary" href="/analysis/{{ it.analysis_id }}">Otwórz</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

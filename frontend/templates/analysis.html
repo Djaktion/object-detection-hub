@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Wynik · {{ meta.analysis_id }}{% endblock %}
+{% block content %}
+<div class="row mt-4">
+  <div class="col-lg-7">
+    <h1 class="h4 mb-3">Wynik analizy</h1>
+    <img class="preview shadow-sm" src="/api/analysis/{{ meta.analysis_id }}/preview" alt="preview" />
+
+    {% if meta.type == 'video' %}
+    <div class="mt-3">
+      <div class="text-muted small mb-1">Wideo z bboxami (podgląd)</div>
+      <video class="w-100 shadow-sm" controls preload="metadata">
+  <source src="/api/analysis/{{ meta.analysis_id }}/video" type="video/mp4" />
+  Twoja przeglądarka nie obsługuje wideo MP4.
+</video>
+    </div>
+    {% endif %}
+    <div class="d-flex gap-2 mt-3">
+      <a class="btn btn-outline-secondary btn-sm" href="/api/analysis/{{ meta.analysis_id }}" target="_blank">JSON</a>
+      <a class="btn btn-outline-secondary btn-sm" href="/api/analysis/{{ meta.analysis_id }}/export.csv" target="_blank" rel="noopener">Eksport CSV</a>
+      <a class="btn btn-outline-secondary btn-sm" href="/api/analysis/{{ meta.analysis_id }}/report.pdf" target="_blank" rel="noopener">Raport PDF</a>
+      {% if meta.type == 'video' %}
+      <a class="btn btn-outline-secondary btn-sm" href="/api/analysis/{{ meta.analysis_id }}/video" target="_blank" rel="noopener">Pobierz wideo</a>
+      {% endif %}
+    </div>
+  </div>
+  <div class="col-lg-5 mt-4 mt-lg-0">
+    <h2 class="h5">Meta</h2>
+    <div class="card shadow-sm">
+      <div class="card-body small">
+        <div><span class="text-muted">Analysis ID:</span> <span class="mono">{{ meta.analysis_id }}</span></div>
+        <div><span class="text-muted">Model:</span> {{ meta.model }}</div>
+        <div><span class="text-muted">Confidence:</span> {{ '%.2f'|format(meta.conf_threshold) }}</div>
+        <div><span class="text-muted">Czas:</span> {{ meta.duration_ms }} ms</div>
+        <div><span class="text-muted">Detekcji:</span> {{ meta.num_detections }}</div>
+      </div>
+    </div>
+
+    <h2 class="h5 mt-4">Detekcje</h2>
+    <div class="table-responsive" style="max-height: 420px;">
+      <table class="table table-sm table-striped align-middle">
+        <thead>
+          <tr>
+            <th>Klasa</th>
+            <th>Conf</th>
+            <th>BBox</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in detections %}
+          <tr>
+            <td>{{ d.class_name }}</td>
+            <td>{{ '%.2f'|format(d.confidence) }}</td>
+            <td class="mono">{{ d.x1|round(0) }},{{ d.y1|round(0) }},{{ d.x2|round(0) }},{{ d.y2|round(0) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <h2 class="h5 mt-4">Wykres klas (dla tej analizy)</h2>
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <canvas id="chartAnalysis"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+async function loadCounts() {
+  const res = await fetch(`/api/stats/analysis/{{ meta.analysis_id }}/classes`);
+  const data = await res.json();
+  const labels = data.items.map(x => x.class_name);
+  const values = data.items.map(x => x.count);
+  const ctx = document.getElementById('chartAnalysis');
+  new Chart(ctx, {
+    type: 'bar',
+    data: { labels: labels, datasets: [{ label: 'Liczba obiektów', data: values }]},
+    options: { responsive: true, plugins: { legend: { display: false } } }
+  });
+}
+loadCounts();
+</script>
+{% endblock %}
